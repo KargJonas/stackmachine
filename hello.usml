@@ -1,0 +1,29 @@
+# Micro Stack Machine Language
+
+  # i
+  CONST 0
+
+.loop
+  CONST 10
+  CONST 79
+  CONST 76
+  CONST 76
+  CONST 69
+  CONST 72
+  PRINT
+  PRINT
+  PRINT
+  PRINT
+  PRINT
+  PRINT
+  
+  # increment i by 1
+  CONST 1
+  ADD
+  DUP
+  CONST 5
+
+  LSS
+  BNZ .loop
+
+  HALT

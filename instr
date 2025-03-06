@@ -1,0 +1,42 @@
+### Stackmachine Instruction Set Architecture ###
+
+const
+  pushes the value from progmem which is right
+  after const onto the stack
+  adds one stack item
+
+dup
+  duplicates the topmost stack item
+
+drop
+  removes the topmost stack item
+
+read
+  reads one byte from stdin onto the stack
+  adds one stack item
+
+print
+  puts one byte from the stack into stdout
+  consumes the last stack item
+
+jmp
+  sets the pc to last value on the stack
+  consumes the last stack item
+
+bnz
+  jumps if the last stack item is nonzero
+  consumes the last stack item
+
+lss
+  consumes two stack items and adds 1 onto the stack
+  if the first one is less than the second one,
+  otherwise adds a 0
+
+add
+  adds the last two items fromthe stack together,
+  removes these items from the stack,
+  and adds the result to the stack
+
+sub
+  like add but with subtraction
+
