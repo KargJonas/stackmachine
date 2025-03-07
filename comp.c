@@ -1,8 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #define MAX_WORD_LENGTH 32
+#define byte uint8_t
+
+#define N_INSTR 11
+char* instr[N_INSTR] = { "HALT", "CONST", "DUP", "DROP", "READ", "PRINT", "JMP", "BNZ", "LSS", "ADD", "SUB" };
 
 typedef struct table_entry {
   char* name;
@@ -10,20 +15,35 @@ typedef struct table_entry {
   struct table_entry* next;
 } table_entry;
 
-struct table_entry* sym_tab;
+struct table_entry* sym_tab = NULL;
 FILE* infile;
 FILE* outfile;
-int ch, line = 1, col = 0;
+int ch, cur_addr = 0, line = 0, col = 0;
+
+byte get_instr(char* name) {
+  for (byte i = 0; i < N_INSTR; i++) {
+    if (strcmp(instr[i], name) == 0) return i;
+  }
+}
 
 struct table_entry* find_symbol(char* name) {
   struct table_entry* current = sym_tab;
-  
+
   while (current != NULL) {
     if (strcmp(current->name, name) == 0) break;
     current = current->next;
   }
 
   return current;
+}
+
+void print_sym_tab() {
+  struct table_entry* current = sym_tab;
+  printf("Name\tAddress\n---------------\n");
+  while (current != NULL) {
+    printf("%s\t%ld\n", current->name, current->addr);
+    current = current->next;
+  }
 }
 
 void add_symbol(char* name, size_t addr) {
@@ -50,6 +70,8 @@ void add_symbol(char* name, size_t addr) {
   // Prepend
   new_entry->next = sym_tab;
   sym_tab = new_entry;
+
+  print_sym_tab();
 }
 
 int scan() {
@@ -87,7 +109,8 @@ char* word() {
 }
 
 void label() {
-  
+  char* name = word();
+  add_symbol(name, cur_addr);
 }
 
 int main(int argc, char** argv) {

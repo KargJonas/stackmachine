@@ -1,5 +1,8 @@
 # Micro Stack Machine Language
 
+.test
+.test
+
   # i
   CONST 0
 
