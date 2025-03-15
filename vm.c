@@ -4,7 +4,6 @@
 
 #define byte uint8_t
 
-#define PROGMEM_SIZE 128
 #define STACK_SIZE   16
 
 #define HALT  0
@@ -23,52 +22,37 @@ char* instr_names[] = {
   "HALT", "CONST", "DUP", "DROP", "READ", "PRINT", "JMP", "BNZ", "LSS", "ADD", "SUB"
 };
 
-byte progmem[PROGMEM_SIZE] = {
-
-  // Loop counter
-  CONST, 0,
-
-  // Increment counter
-  CONST, 1,  // .loop
-  ADD,
-
-  // Print "Hello\n"
-  CONST, 72,
-  PRINT,
-  CONST, 69,
-  PRINT,
-  CONST, 76,
-  PRINT,
-  CONST, 76,
-  PRINT,
-  CONST, 79,
-  PRINT,
-  CONST, 10,
-  PRINT,
-
-  // Loop condition + branching
-  DUP,
-  CONST, 5,
-  LSS,
-  BNZ, 1,
-  HALT
-};
-
-int main() {
+int main(int argc, char** argv) {
   char* debug_str = getenv("DEBUG");
-  
-  
   int debug = debug_str == NULL ? 0 : atoi(debug_str);
 
+  if (argc != 2) {
+    printf("Usage:  vm <infile>\n");
+    exit(1);
+  }
+
+  FILE* infile = fopen(argv[1], "rb");
+  if (!infile) { fprintf(stderr, "Error:\n  Failed to open input file \"%s\".\n", argv[1]); return 1; }
+
+  fseek(infile, 0, SEEK_END);
+  size_t program_size = ftell(infile);
+  rewind(infile);
+
+  byte* progmem = malloc(program_size);
+  if (!progmem) { fprintf(stderr, "Memory related error: Failed to allocate memory for program buffer."); }
+
+  if (progmem) fread(progmem, 1, program_size, infile);
+  fclose(infile);
+
   // byte* progmem = malloc(PROGMEM_SIZE);
-  byte* stack   = malloc(STACK_SIZE);
+  byte* stack = malloc(STACK_SIZE);
   int pc = 0;
 
   // This is a consequence of pointing to the last element
   // and not the first free location on the stack
   int sp = -1; 
 
-  while (pc < PROGMEM_SIZE - 1) {
+  while (pc < program_size - 1) {
 
     byte instr = progmem[pc];
     if (debug > 0) printf("\n%d\t%s\t", pc, instr_names[instr]);
@@ -99,11 +83,10 @@ int main() {
 
     pc++;
 
-    if (sp < 0)                { printf("Stack underflow"); return 1; }
-    else if (sp >= STACK_SIZE) { printf("Stack overflow");  return 1; }
+    if (sp < 0)                { printf("Stack underflow\n"); return 1; }
+    else if (sp >= STACK_SIZE) { printf("Stack overflow\n");  return 1; }
   }
 
-  printf("Unexpected program exit");
+  printf("Unexpected program exit.\n");
   return 1;
 }
-

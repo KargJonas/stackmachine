@@ -106,7 +106,7 @@ void print_sym_tab() {
 }
 
 // Adds a label to the symbol table.
-void add_symbol(char* name, size_t addr, bool is_defined) {
+struct table_entry* add_symbol(char* name, size_t addr, bool is_defined) {
   struct table_entry* entry = find_symbol(name);
 
   if (entry != NULL) {
@@ -120,7 +120,7 @@ void add_symbol(char* name, size_t addr, bool is_defined) {
     if (is_defined) {
       entry->addr = addr;
       entry->is_defined = true;
-      return;
+      return entry;
     }
   }
 
@@ -136,12 +136,14 @@ void add_symbol(char* name, size_t addr, bool is_defined) {
   if (sym_tab == NULL) {
     entry->next = NULL;
     sym_tab = entry;
-    return;
+    return entry;
   }
 
   // Prepend
   entry->next = sym_tab;
   sym_tab = entry;
+
+  return entry;
 }
 
 // Adds a usage reference to a symbol table entry.
@@ -149,7 +151,7 @@ void add_reference(char* name, byte addr) {
   table_entry* entry = find_symbol(name);
 
   if (entry == NULL) {
-    add_symbol(name, 0, false);
+    entry = add_symbol(name, 0, false);
   }
 
   entry->n_refs++;
@@ -289,7 +291,7 @@ void instruction() {
 
     prog_add(val);
   } else if (strcmp(name, "JMP") == 0 || strcmp(name, "BNZ") == 0) {
-    if (nch != ' ' && nch != '\t') fprintf(stderr, "Expected space or tab followed by a label after %s. Found: %d", name, nch);
+    if (nch != ' ' && nch != '\t') fprintf(stderr, "Expected space or tab followed by a label after %s. Found: %d\n", name, nch);
     while (nch == ' ' || nch == '\t') scan();
     scan();
     use_label();
@@ -302,7 +304,7 @@ void update_refs() {
   struct table_entry* current = sym_tab;
   while (current != NULL) {
     if (!current->is_defined) {
-      fprintf(stderr, "Error: Label \"%s\" is used but not declared.", current->name);
+      fprintf(stderr, "Error: Label \"%s\" is used but not declared.\n", current->name);
       exit(1);
     }
 
@@ -316,7 +318,10 @@ void update_refs() {
 }
 
 int main(int argc, char** argv) {
-  if (argc != 3) printf("Usage:  comp <infile> <outfile>\n");
+  if (argc != 3) {
+    printf("Usage:  comp <infile> <outfile>\n");
+    exit(1);
+  }
   
   infile  = fopen(argv[1], "r");
   outfile = fopen(argv[2], "wb");
@@ -340,7 +345,7 @@ int main(int argc, char** argv) {
   print_sym_tab();
   update_refs();
 
-  fwrite(program, sizeof(byte), pc - 1, outfile);
+  fwrite(program, sizeof(byte), pc, outfile);
 
   fclose(infile);
   fclose(outfile);

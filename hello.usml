@@ -1,29 +1,29 @@
 # Micro Stack Machine Language
 
-# index variable i
+# Index variable i
 CONST 0
 
 .loop
-  CONST 10
-  CONST 79
-  CONST 76
-  CONST 76
-  CONST 69
-  CONST 72
-  PRINT
-  PRINT
-  PRINT
-  PRINT
-  PRINT
-  PRINT
-  
-  # increment i by 1
+  # Increment counter
   CONST 1
   ADD
+
+  CONST 72
+  PRINT
+  CONST 69
+  PRINT
+  CONST 76
+  PRINT
+  CONST 76
+  PRINT
+  CONST 79
+  PRINT
+  CONST 10
+  PRINT
+
+  # Loop condition + branching
   DUP
   CONST 5
-
   LSS
   BNZ loop
-
   HALT
