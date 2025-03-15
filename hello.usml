@@ -1,7 +1,6 @@
 # Micro Stack Machine Language
 
 .test
-.test
 
   # i
   CONST 0
@@ -27,6 +26,6 @@
   CONST 5
 
   LSS
-  BNZ .loop
+  BNZ loop
 
   HALT

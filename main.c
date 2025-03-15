@@ -5,9 +5,7 @@
 #define byte uint8_t
 
 #define PROGMEM_SIZE 128
-
-#define INITIAL_STACK_SIZE   2
-#define STACK_GROWTH_FACTOR  1.5
+#define STACK_SIZE   16
 
 #define HALT  0
 #define CONST 1
@@ -58,13 +56,17 @@ byte progmem[PROGMEM_SIZE] = {
 
 int main() {
   char* debug_str = getenv("DEBUG");
+  
+  
   int debug = debug_str == NULL ? 0 : atoi(debug_str);
 
-  byte* stack       = malloc(INITIAL_STACK_SIZE);
-  size_t stack_size = INITIAL_STACK_SIZE;
-  int pc = 0, sp = -1;
+  // byte* progmem = malloc(PROGMEM_SIZE);
+  byte* stack   = malloc(STACK_SIZE);
+  int pc = 0;
 
-  if (debug > 0) printf("\nAddr\tInstr\tOut\tStack\n------------------------------");
+  // This is a consequence of pointing to the last element
+  // and not the first free location on the stack
+  int sp = -1; 
 
   while (pc < PROGMEM_SIZE - 1) {
 
@@ -73,11 +75,13 @@ int main() {
 
     switch (instr) {
       case HALT:   return 0;
+      // Consumes a constant from the progmem, so we need to jump one address.
       case CONST:  stack[++sp] = progmem[++pc]; break;
       case DUP:    stack[++sp] = stack[sp]; break;
       case DROP:   sp--; break;
       case READ:   stack[++sp] = getchar(); break;
       case PRINT:  putchar(stack[sp--]); break;
+      // Compensate -1 address for jmp/branch. This saves logic at pc increment.
       case JMP:    pc = stack[sp--] - 1; break;
       case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; pc++; break;
       case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break;
@@ -87,19 +91,16 @@ int main() {
 
     if (debug > 0) {
       putchar('\t');
-      for (int i = 0; i <= sp; i++) printf("[%d]", stack[i]);
+      for (int i = 0; i <= sp; i++) {
+        printf("[%d]", stack[i]);
+      }
       putchar('\n');
     }
 
     pc++;
 
-    // Handle stack underflow and growth
-    if (sp < 0) { printf("Stack underflow"); return 1; }
-    else if (sp == stack_size - 1) {
-      stack = realloc(stack, stack_size *= STACK_GROWTH_FACTOR);
-      if (debug > 0) printf("\n  [Stack growth] New size: %ld\n", stack_size);
-      if (stack == NULL) { printf("Stack growth failed."); return 1; }
-    }
+    if (sp < 0)                { printf("Stack underflow"); return 1; }
+    else if (sp >= STACK_SIZE) { printf("Stack overflow");  return 1; }
   }
 
   printf("Unexpected program exit");
