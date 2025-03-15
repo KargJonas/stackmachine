@@ -1,9 +1,7 @@
 # Micro Stack Machine Language
 
-.test
-
-  # i
-  CONST 0
+# index variable i
+CONST 0
 
 .loop
   CONST 10
