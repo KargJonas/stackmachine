@@ -6,24 +6,11 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#include "./instr.h"
+
 #define MAX_WORD_LENGTH 32
 #define BUFFER_GROWTH_FACTOR 2
 #define byte uint8_t
-
-#define N_INSTR 11
-char* instr[N_INSTR] = {
-  "HALT",   // 0
-  "CONST",  // 1
-  "DUP",    // 2
-  "DROP",   // 3
-  "READ",   // 4
-  "PRINT",  // 5
-  "JMP",    // 6
-  "BNZ",    // 7
-  "LSS",    // 8
-  "ADD",    // 9
-  "SUB"     // 10
-};
 
 typedef struct table_entry {
   char*  name;              // label name
@@ -77,7 +64,7 @@ void prog_add(byte value) {
 // A trie-based implementation would be better but also overkill.
 byte get_instr(char* name) {
   for (byte i = 0; i < N_INSTR; i++) {
-    if (strcmp(instr[i], name) == 0) return i;
+    if (strcmp(instr_names[i], name) == 0) return i;
   }
 
   return 255;
@@ -175,7 +162,6 @@ int scan() {
   if (ch == '\n') { line++; col = 0; }
   else col++;
 
-  putchar(ch);
   return ch;
 }
 
@@ -317,7 +303,7 @@ void update_refs() {
     }
 
     for (int i = 0; i < current->n_refs; i++) {
-      fprintf(stderr, "\nInserted a reference to addr %ld at pc %d for label %s\n\n", current->addr, current->refs[i], current->name);
+      fprintf(stderr, "\nInserted a reference to addr %ld at pc %d for label %s.\n\n", current->addr, current->refs[i], current->name);
       program[current->refs[i]] = current->addr;
     }
 

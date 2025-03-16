@@ -1,50 +1,39 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
+#include "./instr.h"
+
+#define BUFFER_GROWTH_FACTOR 2
 #define byte uint8_t
 
-#define STACK_SIZE   16
-
-#define HALT  0
-#define CONST 1
-#define DUP   2
-#define DROP  3
-#define READ  4
-#define PRINT 5
-#define JMP   6
-#define BNZ   7
-#define LSS   8
-#define ADD   9
-#define SUB   10
-
-char* instr_names[] = {
-  "HALT", "CONST", "DUP", "DROP", "READ", "PRINT", "JMP", "BNZ", "LSS", "ADD", "SUB"
-};
-
+size_t stack_size = 32;
 size_t program_size;
+
+byte* stack;
 byte* progmem;
+
+void error(const char* fmt, ...) {
+  fprintf(stderr, "Error: \n  ");
+  va_list args;
+  va_start(args, fmt);
+  vfprintf(stderr, fmt, args);
+  va_end(args);
+  fprintf(stderr, "\n");
+  exit(1);
+}
 
 void read(char* filename) {
   FILE* infile = fopen(filename, "rb");
-
-  if (!infile) {
-    fprintf(stderr, "Error:\n  Failed to open input file \"%s\".\n", filename);
-    exit(1);
-  }
+  if (!infile) error("Failed to open input file \"%s\".\n", filename);
 
   fseek(infile, 0, SEEK_END);
   program_size = ftell(infile);
   progmem      = malloc(program_size);
+  if (!progmem) error("Failed to allocate memory for program buffer.");
+
   rewind(infile);
-
-  printf("Prog size %ld\n", program_size);
-
-  if (!progmem) {
-    fprintf(stderr, "Failed to allocate memory for program buffer.");
-    exit(1);
-  }
-   
   fread(progmem, sizeof(byte), program_size, infile);
   fclose(infile);
 }
@@ -60,7 +49,7 @@ int main(int argc, char** argv) {
 
   read(argv[1]);
 
-  byte* stack = malloc(STACK_SIZE);
+  byte* stack = malloc(stack_size);
   int pc = 0;
 
   // This is a consequence of pointing to the last element
@@ -81,13 +70,11 @@ int main(int argc, char** argv) {
 
     switch (instr) {
       case HALT:   return 0;
-      // Consumes a constant from the progmem, so we need to jump one address.
       case CONST:  stack[++sp] = progmem[++pc]; break;
       case DUP:    stack[++sp] = stack[sp]; break;
       case DROP:   sp--; break;
       case READ:   stack[++sp] = getchar(); break;
       case PRINT:  putchar(stack[sp--]); break;
-      // Compensate -1 address for jmp/branch. This saves logic at pc increment.
       case JMP:    pc = stack[sp--] - 1; break;
       case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; break;
       case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break;
@@ -97,10 +84,14 @@ int main(int argc, char** argv) {
 
     pc++;
 
-    if (sp < 0)                { printf("Stack underflow\n"); return 1; }
-    else if (sp >= STACK_SIZE) { printf("Stack overflow\n");  return 1; }
+    if (sp < 0) error("Stack underflow\n");
+    else if (sp >= stack_size) {
+      stack_size *= BUFFER_GROWTH_FACTOR;
+      stack = realloc(stack, stack_size);
+      if (stack == NULL) error("Failed to grow stack.\n");
+    }
   }
 
-  fprintf(stdout, "Unexpected program exit with stack pointer %d and prog size %ld.\n", sp, program_size);
+  error("Unexpected program exit with stack pointer %d and prog size %ld.\n", sp, program_size);
   return 1;
 }

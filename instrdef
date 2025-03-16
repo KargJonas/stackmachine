@@ -1,0 +1,11 @@
+0   HALT    return 0;
+1   CONST   stack[++sp] = progmem[++pc];
+2   DUP     stack[++sp] = stack[sp];
+3   DROP    sp--;
+4   READ    stack[++sp] = getchar();
+5   PRINT   putchar(stack[sp--]);
+6   JMP     pc = stack[sp--] - 1;
+7   BNZ     pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--;
+8   LSS     stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--;
+9   ADD     stack[sp - 1] += stack[sp]; sp--;
+10  SUB     stack[sp - 1] -= stack[sp]; sp--;
