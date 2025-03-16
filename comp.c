@@ -85,9 +85,9 @@ struct table_entry* find_symbol(char* name) {
 // Prints the symbol table to the console.
 void print_sym_tab() {
   struct table_entry* current = sym_tab;
-  printf("[Symbol Table]\nName\tAddress     References\n------------------------------\n");
+  printf("[Symbol Table]\n%-20s%-12s%s\n----------------------------------------------\n", "Name", "Address", "References");
   while (current != NULL) {
-    printf("%-8s%-12ld", current->name, current->addr);
+    printf("%-20s%-12ld", current->name, current->addr);
     for (int i = 0; i < current->n_refs; i++) printf("%d%s", current->refs[i], i == current->n_refs - 1 ? "" : ", ");
     putchar('\n');
     current = current->next;
@@ -180,9 +180,9 @@ char* word() {
   if (wrd == NULL) mem_error("Allocate memory for word/label.");
   wrd[i++] = ch;
   
-  while (nch > 64 && nch < 91) {
+  while ((nch >= 'A' && nch <= 'Z') || (nch >= '0' && nch <= '9') || nch == '_') {
     scan();
-    if (ch > 64 && ch < 91) wrd[i++] = ch; 
+    wrd[i++] = ch; 
     if (i == MAX_WORD_LENGTH - 2) error("Label may not exceed %d characters.", MAX_WORD_LENGTH);
   }
 

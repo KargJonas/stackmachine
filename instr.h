@@ -1,7 +1,7 @@
 #ifndef INSTR_H
 #define INSTR_H
 
-#define N_INSTR 11
+#define N_INSTR 12
 
 // Opcode definitions
 #define HALT  0
@@ -29,7 +29,7 @@ char* instr_names[N_INSTR] = {
   "BNZ",    // 7
   "LSS",    // 8
   "ADD",    // 9
-  "SUB"     // 10
+  "SUB",    // 10
   "MUL"     // 11
 };
 
@@ -42,7 +42,7 @@ char* instr_names[N_INSTR] = {
   case READ:   stack[++sp] = getchar(); break; \
   case PRINT:  putchar(stack[sp--]); break; \
   case JMP:    pc = stack[sp--] - 1; break; \
-  case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; break; \
+  case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc + 1; sp--; break; \
   case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break; \
   case ADD:    stack[sp - 1] += stack[sp]; sp--; break; \
   case SUB:    stack[sp - 1] -= stack[sp]; sp--; break; \

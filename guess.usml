@@ -1,0 +1,176 @@
+# Number Guessing Game for USML
+# The program generates a "random" number for the player to guess
+
+# Initialize
+CONST 42  # Secret number to guess
+CONST 5   # Number of guesses allowed
+CONST 0   # Current guess counter
+
+# Welcome message
+CONST 'G'
+PRINT
+CONST 'u'
+PRINT
+CONST 'e'
+PRINT
+CONST 's'
+PRINT
+CONST 's'
+PRINT
+CONST ' '
+PRINT
+CONST '1'
+PRINT
+CONST '-'
+PRINT
+CONST '9'
+PRINT
+CONST '9'
+PRINT
+CONST '\n'
+PRINT
+
+.main_loop
+  # Check if out of guesses
+  CONST 2   # Guess counter position
+  DUP
+  CONST 5   # Max guesses
+  LSS
+  BNZ still_have_guesses
+  
+  # Out of guesses
+  DROP
+  CONST 'L'
+  PRINT
+  CONST 'o'
+  PRINT
+  CONST 's'
+  PRINT
+  CONST 't'
+  PRINT
+  CONST '!'
+  PRINT
+  CONST '\n'
+  PRINT
+  HALT
+
+.still_have_guesses
+  # Increment guess counter
+  CONST 1
+  ADD
+  
+  # Get player input (number)
+  CONST '>'
+  PRINT
+  CONST ' '
+  PRINT
+  
+  # Read guess digit by digit (max 2 digits)
+  CONST 0   # Start with 0
+  
+  # First digit
+  READ
+  
+  # Check for newline
+  DUP
+  CONST '\n'
+  LSS
+  BNZ done_reading
+  
+  # Convert to numeric value
+  CONST '0'
+  SUB
+  
+  # Multiply current value by 10 and add new digit
+  CONST 10
+  MUL
+  
+  # Second digit
+  READ
+  
+  # Check for newline
+  DUP
+  CONST '\n'
+  LSS
+  BNZ done_reading_2nd
+  
+  # Convert to numeric value
+  CONST '0'
+  SUB
+  
+  # Add to current value
+  ADD
+  
+  # Consume extra newline
+  READ
+  DROP
+
+.done_reading_2nd
+  # Compare with secret number
+  DUP
+  CONST 0   # Secret number position
+  DUP
+  LSS
+  BNZ too_low
+  
+  DUP
+  CONST 0   # Secret number position
+  DUP
+  LSS
+  BNZ correct
+  
+  # Too high
+  DROP
+  DROP
+  CONST 'H'
+  PRINT
+  CONST 'i'
+  PRINT
+  CONST 'g'
+  PRINT
+  CONST 'h'
+  PRINT
+  CONST '\n'
+  PRINT
+  JMP main_loop
+
+.done_reading
+  DROP
+  DROP
+  CONST 'E'
+  PRINT
+  CONST 'r'
+  PRINT
+  CONST 'r'
+  PRINT
+  CONST '\n'
+  PRINT
+  JMP main_loop
+
+.too_low
+  DROP
+  DROP
+  CONST 'L'
+  PRINT
+  CONST 'o'
+  PRINT
+  CONST 'w'
+  PRINT
+  CONST '\n'
+  PRINT
+  JMP main_loop
+
+.correct
+  DROP
+  DROP
+  CONST 'W'
+  PRINT
+  CONST 'i'
+  PRINT
+  CONST 'n'
+  PRINT
+  CONST '!'
+  PRINT
+  CONST '\n'
+  PRINT
+  HALT
