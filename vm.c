@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
   // and not the first free location on the stack
   int sp = -1;
 
-  while (1) {
+  while (pc < program_size) {
     byte instr = progmem[pc];
 
     // Print debug info
@@ -79,7 +79,8 @@ int main(int argc, char** argv) {
       case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; break;
       case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break;
       case ADD:    stack[sp - 1] += stack[sp]; sp--; break;
-      case SUB:    stack[sp - 1] -= stack[sp]; sp--; break; 
+      case SUB:    stack[sp - 1] -= stack[sp]; sp--; break;
+      default:     error("Unexpected opcode: %d\n", instr);
     }
 
     pc++;
