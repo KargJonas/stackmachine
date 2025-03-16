@@ -68,19 +68,9 @@ int main(int argc, char** argv) {
       printf("  \t");
     }
 
-    switch (instr) {
-      case HALT:   return 0;
-      case CONST:  stack[++sp] = progmem[++pc]; break;
-      case DUP:    stack[++sp] = stack[sp]; break;
-      case DROP:   sp--; break;
-      case READ:   stack[++sp] = getchar(); break;
-      case PRINT:  putchar(stack[sp--]); break;
-      case JMP:    pc = stack[sp--] - 1; break;
-      case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; break;
-      case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break;
-      case ADD:    stack[sp - 1] += stack[sp]; sp--; break;
-      case SUB:    stack[sp - 1] -= stack[sp]; sp--; break;
-      default:     error("Unexpected opcode: %d\n", instr);
+    switch(instr) {
+      OP_CASES;
+      default: error("Unexpected opcode: %d\n", instr);
     }
 
     pc++;

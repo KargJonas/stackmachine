@@ -85,9 +85,11 @@ struct table_entry* find_symbol(char* name) {
 // Prints the symbol table to the console.
 void print_sym_tab() {
   struct table_entry* current = sym_tab;
-  printf("\n[Symbol Table]\nName\tAddress\n---------------\n");
+  printf("[Symbol Table]\nName\tAddress     References\n------------------------------\n");
   while (current != NULL) {
-    printf("%s\t%ld\n", current->name, current->addr);
+    printf("%-8s%-12ld", current->name, current->addr);
+    for (int i = 0; i < current->n_refs; i++) printf("%d%s", current->refs[i], i == current->n_refs - 1 ? "" : ", ");
+    putchar('\n');
     current = current->next;
   }
 }
@@ -263,7 +265,7 @@ void instruction() {
 
   if (instr == 255) error("Invalid operation \"%s\".\n", name);
 
-  if (strcmp(name, "CONST") == 0) {
+  if (instr == CONST) {
     int val;
 
     if (nch != ' ' && nch != '\t') error("Expected space or tab followed by char or int literal after CONST. Found: %d", nch);
@@ -284,7 +286,7 @@ void instruction() {
     }
 
     prog_add(val);
-  } else if (strcmp(name, "JMP") == 0 || strcmp(name, "BNZ") == 0) {
+  } else if (instr == JMP || instr == BNZ) {
     if (nch != ' ' && nch != '\t') fprintf(stderr, "Expected space or tab followed by a label after %s. Found: %d\n", name, nch);
     while (nch == ' ' || nch == '\t') scan();
     scan();
@@ -303,7 +305,6 @@ void update_refs() {
     }
 
     for (int i = 0; i < current->n_refs; i++) {
-      fprintf(stderr, "\nInserted a reference to addr %ld at pc %d for label %s.\n\n", current->addr, current->refs[i], current->name);
       program[current->refs[i]] = current->addr;
     }
 
