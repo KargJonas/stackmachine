@@ -22,6 +22,33 @@ char* instr_names[] = {
   "HALT", "CONST", "DUP", "DROP", "READ", "PRINT", "JMP", "BNZ", "LSS", "ADD", "SUB"
 };
 
+size_t program_size;
+byte* progmem;
+
+void read(char* filename) {
+  FILE* infile = fopen(filename, "rb");
+
+  if (!infile) {
+    fprintf(stderr, "Error:\n  Failed to open input file \"%s\".\n", filename);
+    exit(1);
+  }
+
+  fseek(infile, 0, SEEK_END);
+  program_size = ftell(infile);
+  progmem      = malloc(program_size);
+  rewind(infile);
+
+  printf("Prog size %ld\n", program_size);
+
+  if (!progmem) {
+    fprintf(stderr, "Failed to allocate memory for program buffer.");
+    exit(1);
+  }
+   
+  fread(progmem, sizeof(byte), program_size, infile);
+  fclose(infile);
+}
+
 int main(int argc, char** argv) {
   char* debug_str = getenv("DEBUG");
   int debug = debug_str == NULL ? 0 : atoi(debug_str);
@@ -31,31 +58,26 @@ int main(int argc, char** argv) {
     exit(1);
   }
 
-  FILE* infile = fopen(argv[1], "rb");
-  if (!infile) { fprintf(stderr, "Error:\n  Failed to open input file \"%s\".\n", argv[1]); return 1; }
+  read(argv[1]);
 
-  fseek(infile, 0, SEEK_END);
-  size_t program_size = ftell(infile);
-  rewind(infile);
-
-  byte* progmem = malloc(program_size);
-  if (!progmem) { fprintf(stderr, "Memory related error: Failed to allocate memory for program buffer."); }
-
-  if (progmem) fread(progmem, 1, program_size, infile);
-  fclose(infile);
-
-  // byte* progmem = malloc(PROGMEM_SIZE);
   byte* stack = malloc(STACK_SIZE);
   int pc = 0;
 
   // This is a consequence of pointing to the last element
   // and not the first free location on the stack
-  int sp = -1; 
+  int sp = -1;
 
-  while (pc < program_size - 1) {
-
+  while (1) {
     byte instr = progmem[pc];
-    if (debug > 0) printf("\n%d\t%s\t", pc, instr_names[instr]);
+
+    // Print debug info
+    if (debug > 0) {
+      printf("\n%-8d%-6s", pc, instr_names[instr]);
+      if (instr == CONST || instr == BNZ || instr == JMP) printf("(%d)\t", progmem[pc + 1]);
+      else printf("     \t");
+      for (int i = 0; i <= sp; i++) printf("[%d]", stack[i]);
+      printf("  \t");
+    }
 
     switch (instr) {
       case HALT:   return 0;
@@ -67,18 +89,10 @@ int main(int argc, char** argv) {
       case PRINT:  putchar(stack[sp--]); break;
       // Compensate -1 address for jmp/branch. This saves logic at pc increment.
       case JMP:    pc = stack[sp--] - 1; break;
-      case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; pc++; break;
+      case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; break;
       case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break;
       case ADD:    stack[sp - 1] += stack[sp]; sp--; break;
       case SUB:    stack[sp - 1] -= stack[sp]; sp--; break; 
-    }
-
-    if (debug > 0) {
-      putchar('\t');
-      for (int i = 0; i <= sp; i++) {
-        printf("[%d]", stack[i]);
-      }
-      putchar('\n');
     }
 
     pc++;
@@ -87,6 +101,6 @@ int main(int argc, char** argv) {
     else if (sp >= STACK_SIZE) { printf("Stack overflow\n");  return 1; }
   }
 
-  printf("Unexpected program exit.\n");
+  fprintf(stdout, "Unexpected program exit with stack pointer %d and prog size %ld.\n", sp, program_size);
   return 1;
 }

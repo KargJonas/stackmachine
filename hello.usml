@@ -8,17 +8,17 @@ CONST 0
   CONST 1
   ADD
 
-  CONST 72
+  CONST 'H'
   PRINT
-  CONST 69
+  CONST 'E'
   PRINT
-  CONST 76
+  CONST 'L'
   PRINT
-  CONST 76
+  CONST 'L'
   PRINT
-  CONST 79
+  CONST 'O'
   PRINT
-  CONST 10
+  CONST '\n'
   PRINT
 
   # Loop condition + branching
