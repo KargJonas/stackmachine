@@ -175,6 +175,7 @@ int scan() {
   if (ch == '\n') { line++; col = 0; }
   else col++;
 
+  putchar(ch);
   return ch;
 }
 
@@ -218,23 +219,30 @@ void use_label() {
 // Reads a char constant of the form 'a' or '\n'
 byte chr() {
   byte val;
-  scan(); // consume '
-  if (ch == '\\') switch(scan()) {
-    case '\\': val = '\\'; break;
-    case '\'': val = '\''; break;
-    case 'n':  val = '\n'; break;
-    case 't':  val = '\t'; break;
-    case 'r':  val = '\r'; break;
-    case 'b':  val = '\b'; break;
-    case 'f':  val = '\f'; break;
-    case 'v':  val = '\v'; break;
-    case '0':  val = '\0'; break;
-    default:
-      printf("Error on line %d col %d:\n  Unsupported escape code '\\%c'.\n", line, col, ch);
-      exit(1);
+  scan(); // consume opening quote
+  if (nch == '\\') {
+    scan(); // consume backslash
+    switch(scan()) {
+      case '\\': val = '\\'; break;
+      case '\'': val = '\''; break;
+      case 'N':  val = '\n'; break;
+      case 'T':  val = '\t'; break;
+      case 'R':  val = '\r'; break;
+      case 'B':  val = '\b'; break;
+      case 'F':  val = '\f'; break;
+      case 'V':  val = '\v'; break;
+      case '0':  val = '\0'; break;
+      default:
+        error("Unsupported escape code '\\%c'.", ch);
+    }
   }
   else val = scan();
-  scan(); // consume "'"
+  
+  if (nch != '\'') {
+    error("Expected closing quote after character constant");
+  }
+
+  scan(); // consume closing quote
   return val;
 }
 
@@ -339,7 +347,7 @@ int main(int argc, char** argv) {
     if (ch == '#') comment();
     else if (ch == '.') label();
     else if (nch > 64 && nch < 91) instruction();
-    else error("Unexpected char '%c' (code: %d).\n", ch, ch);
+    else error("Unexpected char %c (code: %d).\n", ch, ch);
   }
 
   print_sym_tab();
