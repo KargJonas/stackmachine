@@ -40,3 +40,5 @@ add
 sub
   like add but with subtraction
 
+mul
+  like add but with multiplication

@@ -15,6 +15,7 @@
 #define LSS   8
 #define ADD   9
 #define SUB   10
+#define MUL   11
 
 // Operation name definitions
 char* instr_names[N_INSTR] = {
@@ -29,6 +30,7 @@ char* instr_names[N_INSTR] = {
   "LSS",    // 8
   "ADD",    // 9
   "SUB"     // 10
+  "MUL"     // 11
 };
 
 // Operation behavior definitions
@@ -43,6 +45,7 @@ char* instr_names[N_INSTR] = {
   case BNZ:    pc = stack[sp] != 0 ? progmem[pc + 1] - 1 : pc; sp--; break; \
   case LSS:    stack[sp - 1] = stack[sp - 1] < stack[sp]; sp--; break; \
   case ADD:    stack[sp - 1] += stack[sp]; sp--; break; \
-  case SUB:    stack[sp - 1] -= stack[sp]; sp--; break;
+  case SUB:    stack[sp - 1] -= stack[sp]; sp--; break; \
+  case MUL:    stack[sp - 1] *= stack[sp]; sp--; break;
 
 #endif // INSTR_H
